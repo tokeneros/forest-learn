@@ -66,6 +66,12 @@ public class DefaultInterceptorFactory implements InterceptorFactory {
         return (T) interceptor;
     }
 
+    /**
+     * 创建拦截器
+     * @param clazz 需要拦截的类
+     * @param <T> {@link InterceptorChain}
+     * @return
+     */
     protected <T extends Interceptor> Interceptor createInterceptor(Class<T> clazz) {
         Interceptor interceptor;
         try {

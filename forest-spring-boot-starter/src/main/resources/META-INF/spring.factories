@@ -1,2 +1,3 @@
+# ??spring???spring-boot-autoconfigure??????spring.factories??????jar??
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.dtflys.forest.springboot.ForestAutoConfiguration

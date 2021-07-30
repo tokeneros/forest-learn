@@ -33,6 +33,11 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Forest Bean 注册器
+ * 1. 他们不会使用@Bean注解来申明对象，都是通过注册BeanDefinition来申明对象
+ * 2. 他们会存在唯一的一个上下文，通过属性注册来将其他相关参数存放进去
+ */
 public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcessor {
 
     private final ConfigurableApplicationContext applicationContext;
@@ -52,14 +57,21 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
         this.resourceLoader = resourceLoader;
     }
 
-
+    /**
+     *
+     * @param forestConfigurationProperties
+     * @return
+     */
     public ForestConfiguration registerForestConfiguration(ForestConfigurationProperties forestConfigurationProperties) {
+        // 生成BeanClass 为 ForestConfiguration 的 BeanDefinitionBuilder构建对象
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ForestConfiguration.class);
+        // 自定义beanId，默认为 forestConfiguration
         String id = forestConfigurationProperties.getBeanId();
         if (StringUtils.isBlank(id)) {
             id = "forestConfiguration";
         }
 
+        // 实例化 - 日志处理器接口
         Class<? extends ForestLogHandler> logHandlerClass = forestConfigurationProperties.getLogHandler();
         ForestLogHandler logHandler = null;
         if (logHandlerClass != null) {
@@ -72,6 +84,7 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
             }
         }
 
+        // 向 BeanDefinitionBuilder构建对象 添加属性值
         beanDefinitionBuilder
                 .addPropertyValue("maxConnections", forestConfigurationProperties.getMaxConnections())
                 .addPropertyValue("maxRouteConnections", forestConfigurationProperties.getMaxRouteConnections())
@@ -93,12 +106,17 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
                 .setLazyInit(false)
                 .setFactoryMethod("configuration");
 
+        // 注册拦截器对象
         BeanDefinition interceptorFactoryBeanDefinition = registerInterceptorFactoryBean();
+        // 将拦截器对象注入到ForestConfiguration中
         beanDefinitionBuilder.addPropertyValue("interceptorFactory", interceptorFactoryBeanDefinition);
 
+        // 获取配置中的密钥信息
         List<ForestSSLKeyStoreProperties> sslKeyStorePropertiesList = forestConfigurationProperties.getSslKeyStores();
+        // Spring中能包括运行时 bean 引用（要解析为 bean 对象) 而存在的map对象, 这里VALUE为BeanDefinition
         ManagedMap<String, BeanDefinition> sslKeystoreMap = new ManagedMap<>();
         for (ForestSSLKeyStoreProperties keyStoreProperties : sslKeyStorePropertiesList) {
+            // 注册密钥信息
             registerSSLKeyStoreBean(sslKeystoreMap, keyStoreProperties);
         }
 
@@ -173,16 +191,31 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
         }
     }
 
+    /**
+     * 注册 拦截器对象
+     * @return
+     */
     public BeanDefinition registerInterceptorFactoryBean() {
+        // 生成BeanClass 为 SpringInterceptorFactory 的 BeanDefinitionBuilder构建对象
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(SpringInterceptorFactory.class);
+        // 获取BeanDefinition
         BeanDefinition beanDefinition = beanDefinitionBuilder.getRawBeanDefinition();
+        // TODO 获取spring上下文的 BeanDefinitionRegistry 可注册我们想申明的Bean
         BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) applicationContext.getBeanFactory();
         beanFactory.registerBeanDefinition("forestInterceptorFactory", beanDefinition);
         return beanDefinition;
     }
 
+    /**
+     * 注册密钥信息
+     * @param map
+     * @param sslKeyStoreProperties
+     * @return
+     */
     public BeanDefinition registerSSLKeyStoreBean(ManagedMap<String, BeanDefinition> map, ForestSSLKeyStoreProperties sslKeyStoreProperties) {
+        // 密钥信息主键
         String id = sslKeyStoreProperties.getId();
+        // 密钥信息不允许为空，不允许重复
         if (StringUtils.isBlank(id)) {
             throw new ForestRuntimeException("[Forest] Property 'id' of SSL keystore can not be empty or blank");
         }
@@ -190,6 +223,7 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
             throw new ForestRuntimeException("[Forest] Duplicate SSL keystore id '" + id + "'");
         }
 
+        //
         BeanDefinition beanDefinition = ForestConfigurationBeanDefinitionParser.createSSLKeyStoreBean(
                 id,
                 sslKeyStoreProperties.getType(),

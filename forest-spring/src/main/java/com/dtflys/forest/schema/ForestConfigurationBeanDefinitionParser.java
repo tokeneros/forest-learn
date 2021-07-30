@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
+ * 自定义 配置BeanDefinition解析器
  * @author gongjun[jun.gong@thebeastshop.com]
  * @since 2017-04-21 14:49
  */
@@ -159,8 +160,19 @@ public class ForestConfigurationBeanDefinitionParser implements BeanDefinitionPa
     }
 
 
-
-
+    /**
+     * 创建密钥信息BeanDefinition
+     * TODO 为什么需要通过构造函数来创建？？？
+     * @param id
+     * @param keystoreType
+     * @param filePath
+     * @param keystorePass
+     * @param certPass
+     * @param protocolsStr
+     * @param cipherSuitesStr
+     * @param sslSocketFactoryBuilder
+     * @return
+     */
     public static BeanDefinition createSSLKeyStoreBean(String id,
                                                        String keystoreType,
                                                        String filePath,
@@ -169,15 +181,20 @@ public class ForestConfigurationBeanDefinitionParser implements BeanDefinitionPa
                                                        String protocolsStr,
                                                        String cipherSuitesStr,
                                                        String sslSocketFactoryBuilder) {
+        // GenericBeanDefinition为标准BeanDefinition创建类
         BeanDefinition beanDefinition = new GenericBeanDefinition();
+        // 设置BeanClassName bean名称
         beanDefinition.setBeanClassName(sslKeyStoreBeanClass.getName());
+        // 获取Bean的构造函数参数值
         ConstructorArgumentValues beanDefValues = beanDefinition.getConstructorArgumentValues();
+        // 赋值
         beanDefValues.addGenericArgumentValue(id);
         beanDefValues.addGenericArgumentValue(keystoreType);
         beanDefValues.addGenericArgumentValue(filePath);
         beanDefValues.addGenericArgumentValue(keystorePass);
         beanDefValues.addGenericArgumentValue(certPass);
         beanDefValues.addGenericArgumentValue(sslSocketFactoryBuilder);
+        // 协议号额外判断
         if (StringUtils.isNotEmpty(protocolsStr)) {
             String[] strs = protocolsStr.split("[ /t]*,[ /t]*");
             String[] protocols = new String[strs.length];
@@ -186,6 +203,7 @@ public class ForestConfigurationBeanDefinitionParser implements BeanDefinitionPa
             }
             beanDefinition.getPropertyValues().add("protocols", protocols);
         }
+        // TODO
         if (StringUtils.isNotEmpty(cipherSuitesStr)) {
             String[] strs = cipherSuitesStr.split("[ /t]*,[ /t]*");
             String[] cipherSuites = new String[strs.length];
