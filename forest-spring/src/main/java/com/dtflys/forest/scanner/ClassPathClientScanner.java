@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Set;
 
 /**
+ * 自定义BeanDefinition定义扫描器
+ *
  * @author gongjun[jun.gong@thebeastshop.com]
  * @since 2017-04-24 14:46
  */
@@ -37,15 +39,20 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
     public ClassPathClientScanner(String configurationId, BeanDefinitionRegistry registry) {
         super(registry, false);
         this.configurationId = configurationId;
+        // 注册过滤器
         registerFilters();
+        // 注册多种类型
         registerMultipartTypes();
     }
 
     /**
+     * TODO 这一块暂时没看懂
      * 注册能上传下载的文件类型
      */
     public void registerMultipartTypes() {
+        // 自定义类型工厂 TODO
         ForestMultipartFactory.registerFactory(Resource.class, SpringResource.class);
+        // 响应体 TODO
         RequestBodyBuilder.registerBodyBuilder(Resource.class, new ResourceRequestBodyBuilder());
         try {
             Class multipartFileClass = Class.forName("org.springframework.web.multipart.MultipartFile");
@@ -61,12 +68,16 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
      * 注册过滤器
      */
     public void registerFilters() {
+        // 这里为注册BeanDefinition的开关，默认为true
         if (allInterfaces) {
             // include all interfaces
+            // 满足该条件即可注册
             addIncludeFilter(new TypeFilter() {
                 @Override
                 public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+                    // 获取元数据 的 className
                     String className = metadataReader.getClassMetadata().getClassName();
+                    // 反射获取Class对象
                     Class clazz = null;
                     try {
                         clazz = Class.forName(className);
@@ -75,14 +86,18 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
                     if (clazz == null) {
                         return false;
                     }
+                    // 获取该Class对象上的注解
                     Annotation[] baseAnns = clazz.getAnnotations();
+                    // 判断注解是否包含BaseLifeCycle, 如果包含直接返回true
                     for (Annotation ann : baseAnns) {
                         Annotation lcAnn = ann.annotationType().getAnnotation(BaseLifeCycle.class);
                         if (lcAnn != null) {
                             return true;
                         }
                     }
+                    // 获取该Class对象中所有的方法
                     Method[] methods = clazz.getMethods();
+                    // 判断该类上方法是否包含注解 MethodLifeCycle
                     for (Method method : methods) {
                         Annotation[] mthAnns = method.getAnnotations();
                         for (Annotation ann : mthAnns) {
@@ -98,10 +113,13 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
         }
 
         // exclude package-info.java
+        // 不满足该条件才可注册
         addExcludeFilter(new TypeFilter() {
             @Override
             public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+                // 获取元数据 的 className
                 String className = metadataReader.getClassMetadata().getClassName();
+                // 如果满足 className末尾为 package-info，不允许实例化
                 return className.endsWith("package-info");
             }
         });

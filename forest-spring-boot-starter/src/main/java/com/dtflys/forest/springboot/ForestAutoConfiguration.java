@@ -37,7 +37,7 @@ public class ForestAutoConfiguration {
     @Bean
     public ForestBeanRegister forestBeanRegister(ForestConfigurationProperties forestConfigurationProperties) {
         ForestBeanRegister forestBeanRegister = new ForestBeanRegister(applicationContext, forestConfigurationProperties);
-        // 注册配置
+        // 注册 上下文信息，
         forestBeanRegister.registerForestConfiguration(forestConfigurationProperties);
         // 注册
         forestBeanRegister.registerScanner(forestConfigurationProperties);

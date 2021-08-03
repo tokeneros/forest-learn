@@ -58,7 +58,7 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
     }
 
     /**
-     *
+     * 初始化 上下文信息
      * @param forestConfigurationProperties
      * @return
      */
@@ -120,38 +120,55 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
             registerSSLKeyStoreBean(sslKeystoreMap, keyStoreProperties);
         }
 
+        // 将密钥信息注入到beanDefinition中
         BeanDefinition beanDefinition = beanDefinitionBuilder.getRawBeanDefinition();
         beanDefinition.getPropertyValues().addPropertyValue("sslKeyStores", sslKeystoreMap);
 
+        // 获取spring的 注册中心
         BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) applicationContext.getBeanFactory();
+        // 将自定义上下文注册到spring中，等待spring自动实例化、初始化bean
         beanFactory.registerBeanDefinition(id, beanDefinition);
 
+        // 获取自定义上下文
         ForestConfiguration configuration = applicationContext.getBean(id, ForestConfiguration.class);
 
+        // 获取 全局过滤器 配置信息
         Map<String, Class> filters = forestConfigurationProperties.getFilters();
         for (Map.Entry<String, Class> entry : filters.entrySet()) {
             String filterName = entry.getKey();
             Class filterClass = entry.getValue();
+            // 注册 全局过滤器
             configuration.registerFilter(filterName, filterClass);
         }
 
+        // 获取 转换器 信息
         ForestConvertProperties convertProperties = forestConfigurationProperties.getConverters();
         if (convertProperties != null) {
+            // 注册 转换器
             registerConverter(configuration, ForestDataType.TEXT, convertProperties.getText());
             registerConverter(configuration, ForestDataType.JSON, convertProperties.getJson());
             registerConverter(configuration, ForestDataType.XML, convertProperties.getXml());
             registerConverter(configuration, ForestDataType.BINARY, convertProperties.getBinary());
         }
 
+        // 注册转换器 Bean 监听器
         registerConverterBeanListener(configuration);
         return configuration;
     }
 
+    /**
+     * 注册类型转换监听器
+     * @param forestConfiguration 上下文
+     * @return
+     */
     public ConverterBeanListener registerConverterBeanListener(ForestConfiguration forestConfiguration) {
+        // 生成BeanClass 为 ConverterBeanListener 的 BeanDefinitionBuilder构建对象
         BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ConverterBeanListener.class);
         BeanDefinition beanDefinition = beanDefinitionBuilder.getRawBeanDefinition();
+        // 注入上下文
         beanDefinition.getPropertyValues().addPropertyValue("forestConfiguration", forestConfiguration);
         BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) applicationContext.getBeanFactory();
+        // 将 spring中注册 类型转换监听器
         beanFactory.registerBeanDefinition("forestConverterBeanListener", beanDefinition);
         return applicationContext.getBean("forestConverterBeanListener", ConverterBeanListener.class);
     }
@@ -223,7 +240,7 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
             throw new ForestRuntimeException("[Forest] Duplicate SSL keystore id '" + id + "'");
         }
 
-        //
+        // 创建密钥仓库相关信息
         BeanDefinition beanDefinition = ForestConfigurationBeanDefinitionParser.createSSLKeyStoreBean(
                 id,
                 sslKeyStoreProperties.getType(),
@@ -239,11 +256,14 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
     }
 
     public ClassPathClientScanner registerScanner(ForestConfigurationProperties forestConfigurationProperties) {
+        // 获取基础包路径
         List<String> basePackages = ForestScannerRegister.basePackages;
+        // 获取配置主键
         String configurationId = ForestScannerRegister.configurationId;
-
+        // 获取spring的BeanDefinition注册中心
         BeanDefinitionRegistry registry = (BeanDefinitionRegistry) applicationContext.getBeanFactory();
 
+        // 创建自定义的BeanDefinition扫描器
         ClassPathClientScanner scanner = new ClassPathClientScanner(configurationId, registry);
         // this check is needed in Spring 3.1
         if (resourceLoader != null) {

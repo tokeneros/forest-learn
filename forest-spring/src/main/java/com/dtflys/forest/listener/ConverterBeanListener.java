@@ -18,11 +18,21 @@ import java.util.Map;
  **/
 public class ConverterBeanListener implements ApplicationListener<ApplicationContextEvent> {
 
+    /**
+     * 自定义上下文
+     */
     private ForestConfiguration forestConfiguration;
 
+    /**
+     * spring 事件响应
+     * TODO 为什么会存在该步骤？？？
+     * @param event 事件
+     */
     @Override
     public void onApplicationEvent(ApplicationContextEvent event) {
+        // 获取spring上下文
         ApplicationContext applicationContext = event.getApplicationContext();
+        // 获取自定义上下文，如果不存在，则获取对应信息
         ForestConfiguration forestConfiguration = this.forestConfiguration;
         if (forestConfiguration == null) {
             try {
@@ -31,8 +41,10 @@ public class ConverterBeanListener implements ApplicationListener<ApplicationCon
                 throw new ForestRuntimeException("property forestConfiguration undefined", ignored);
             }
         }
+        // 通过 class 类型获取 转换器实例
         Map<String, ForestConverter> forestConverterMap = applicationContext.getBeansOfType(ForestConverter.class);
         for (ForestConverter forestConverter : forestConverterMap.values()) {
+            // 将转换器注册到自定义上下文中
             forestConfiguration.getConverterMap().put(forestConverter.getDataType(), forestConverter);
         }
     }
