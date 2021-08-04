@@ -125,8 +125,13 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
         });
     }
 
+    /**
+     * 处理自定义的BeanDefinition逻辑
+     * @param beanDefinitions
+     */
     private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
         GenericBeanDefinition definition;
+        // 循环处理自定义的BeanDefinition
         for (BeanDefinitionHolder holder : beanDefinitions) {
             definition = (GenericBeanDefinition) holder.getBeanDefinition();
 
@@ -135,7 +140,9 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
                         + "' and Proxy of '" + definition.getBeanClassName() + "' client interface");
             }
 
+            // Bean的Class类名
             String beanClassName = definition.getBeanClassName();
+            // 给BeanDefinition做一些特殊化处理
             ClientFactoryBeanUtils.setupClientFactoryBean(definition, configurationId, beanClassName);
             logger.info("[Forest] Created Forest Client Bean with name '" + holder.getBeanName()
                     + "' and Proxy of '" + beanClassName + "' client interface");
@@ -151,14 +158,23 @@ public class ClassPathClientScanner extends ClassPathBeanDefinitionScanner {
      */
     @Override
     public Set<BeanDefinitionHolder> doScan(String... basePackages) {
+        // 调用父类的扫描方法，因为上述过滤器注册，可以找到我们想要的BeanDefinition
         Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
+        // 如果为空，答应Warn日志
         if (beanDefinitions.isEmpty()) {
             logger.warn("[Forest] No Forest client is found in package '" + Arrays.toString(basePackages) + "'.");
         }
+        // 处理自定义的BeanDefinition
         processBeanDefinitions(beanDefinitions);
         return beanDefinitions;
     }
 
+    /**
+     * 该方法原先是 默认实现检查类是否不是接口并且不依赖于封闭类
+     * 适配的BeanDefinition无法满足条件
+     * @param beanDefinition
+     * @return
+     */
     @Override
     protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
         return beanDefinition.getMetadata().isInterface() && beanDefinition.getMetadata().isIndependent();

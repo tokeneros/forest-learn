@@ -45,7 +45,7 @@ public class ForestScannerRegister implements BeanFactoryAware, ImportBeanDefini
     }
 
     /**
-     * 我们可以自定义一些BeanDefinition注册进去
+     * 目前这一块主要是获取 {@link ForestScan} 的配置信息，方便后面使用
      * @param importingClassMetadata 元注解信息
      * @param registry BeanDefinition注册中心
      */

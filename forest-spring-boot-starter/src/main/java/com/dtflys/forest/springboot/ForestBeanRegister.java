@@ -173,17 +173,26 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
         return applicationContext.getBean("forestConverterBeanListener", ConverterBeanListener.class);
     }
 
+    /**
+     * 注册转换器 TODO 没看懂
+     * @param configuration 上下文
+     * @param dataType 数据类型封装类型
+     * @param converterItemProperties 转换器属性
+     */
     private void registerConverter(ForestConfiguration configuration, ForestDataType dataType, ForestConverterItemProperties converterItemProperties) {
         if (converterItemProperties == null) {
             return;
         }
+        // 转换器Class
         Class type = converterItemProperties.getType();
         if (type != null) {
+            // 如果不为空的化，进行实例化
             ForestConverter converter = null;
             try {
                 converter = (ForestConverter) type.newInstance();
-
+                //
                 Map<String, Object> parameters = converterItemProperties.getParameters();
+                // 获取Class对应的属性
                 PropertyDescriptor[] descriptors = ReflectUtils.getBeanSetters(type);
                 for (PropertyDescriptor descriptor : descriptors) {
                     String name = descriptor.getName();
@@ -270,9 +279,11 @@ public class ForestBeanRegister implements ResourceLoaderAware, BeanPostProcesso
             scanner.setResourceLoader(resourceLoader);
         }
 //        scanner.registerFilters();
+        // 如果没有需要扫描的基本包路径，则不执行
         if (basePackages == null || basePackages.size() == 0) {
             return scanner;
         }
+        // 调用自定义BeanDefinition扫描器，注册适配的BeanDefinition
         scanner.doScan(org.springframework.util.StringUtils.toStringArray(basePackages));
         return scanner;
     }

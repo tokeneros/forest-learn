@@ -8,6 +8,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
+ * 自定义适配的FactoryBean，在初始已经识别到我们所有后面使用的BeanDefinition，并且都配置为ClientFactoryBean类型
+ *
  * @author gongjun[jun.gong@thebeastshop.com]
  * @since 2017-04-24 18:47
  */

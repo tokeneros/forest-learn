@@ -37,9 +37,9 @@ public class ForestAutoConfiguration {
     @Bean
     public ForestBeanRegister forestBeanRegister(ForestConfigurationProperties forestConfigurationProperties) {
         ForestBeanRegister forestBeanRegister = new ForestBeanRegister(applicationContext, forestConfigurationProperties);
-        // 注册 上下文信息，
+        // 注册 上下文信息，后期使用的核心类
         forestBeanRegister.registerForestConfiguration(forestConfigurationProperties);
-        // 注册
+        // 注册 自定义扫描器，加载适配的BeanDefinition
         forestBeanRegister.registerScanner(forestConfigurationProperties);
         return forestBeanRegister;
     }

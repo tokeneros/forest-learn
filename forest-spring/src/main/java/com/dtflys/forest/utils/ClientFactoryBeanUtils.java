@@ -15,10 +15,13 @@ public class ClientFactoryBeanUtils {
     private final static Class CLIENT_FACTORY_BEAN_CLASS = ClientFactoryBean.class;
 
     public static void setupClientFactoryBean(AbstractBeanDefinition beanDefinition, String configurationId, String clientClassName) {
+        // 更改适配的BeanDefinition的 实例化类
         beanDefinition.setBeanClass(CLIENT_FACTORY_BEAN_CLASS);
+        // 为适配的BeanDefinition 添加上下文引用
         if (configurationId != null && configurationId.length() > 0) {
             beanDefinition.getPropertyValues().add("forestConfiguration", new RuntimeBeanReference(configurationId));
         }
+        // 为适配的BeanDefinition 添加原始的实例化类名
         beanDefinition.getPropertyValues().add("interfaceClass", clientClassName);
     }
 
