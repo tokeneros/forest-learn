@@ -766,6 +766,7 @@ public class ForestConfiguration implements Serializable {
      * @return      动态代理工厂
      */
     public <T> ProxyFactory<T> getProxyFactory(Class<T> clazz) {
+        // 每次新建一个工厂，将上下文和接口类传递进去
         return new ProxyFactory<T>(this, clazz);
     }
 
@@ -894,7 +895,9 @@ public class ForestConfiguration implements Serializable {
      * @return       动态代理实例
      */
     public <T> T createInstance(Class<T> clazz) {
+        // 获取代理工厂
         ProxyFactory<T> proxyFactory = getProxyFactory(clazz);
+        // 创建代理类
         return proxyFactory.createInstance();
     }
 

@@ -21,7 +21,7 @@ public class ClientFactoryBeanUtils {
         if (configurationId != null && configurationId.length() > 0) {
             beanDefinition.getPropertyValues().add("forestConfiguration", new RuntimeBeanReference(configurationId));
         }
-        // 为适配的BeanDefinition 添加原始的实例化类名
+        // 为适配的BeanDefinition 添加原始的实例化类名 这里是相对路径全名，所以会自定转换为Class类
         beanDefinition.getPropertyValues().add("interfaceClass", clientClassName);
     }
 

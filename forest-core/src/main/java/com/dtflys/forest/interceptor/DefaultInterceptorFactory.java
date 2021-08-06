@@ -52,17 +52,29 @@ public class DefaultInterceptorFactory implements InterceptorFactory {
         return interceptorChain;
     }
 
+    /**
+     * 拦截器获取
+     *
+     * @param clazz
+     * @param <T>
+     * @return
+     */
     @Override
     public <T extends Interceptor> T getInterceptor(Class<T> clazz) {
+        // 判断当前拦截器中是否含有该 Class类对应的拦截器
         Interceptor interceptor = interceptorMap.get(clazz);
+        // 如果拦截器不存在，则新建
         if (interceptor == null) {
+            // 通过同步代码块。保证线程安全
             synchronized (DefaultInterceptorFactory.class) {
                 interceptor = interceptorMap.get(clazz);
                 if (interceptor == null) {
+                    // 创建拦截器
                     interceptor = createInterceptor(clazz);
                 }
             }
         }
+        // 拦截器
         return (T) interceptor;
     }
 
@@ -75,7 +87,9 @@ public class DefaultInterceptorFactory implements InterceptorFactory {
     protected <T extends Interceptor> Interceptor createInterceptor(Class<T> clazz) {
         Interceptor interceptor;
         try {
+            // 实例化拦截器
             interceptor = clazz.newInstance();
+            // 存放到缓存中
             interceptorMap.put(clazz, interceptor);
         } catch (InstantiationException e) {
             throw new ForestRuntimeException(e);
